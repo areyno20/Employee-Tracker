@@ -6,7 +6,7 @@ VALUES
 ('Legal'),
 ('Engineering');
 
-INSERT into position (title, salary, department_id)
+INSERT into role (title, salary, department_id)
 VALUES
 ('Cleaning Manager', 50000, 1),
 ('Production Manager', 65000, 2),
@@ -14,7 +14,7 @@ VALUES
 ('Lawyer', 100000, 4),
 ('Lead Engineer', 150000, 5);
 
-insert into employee (first_name, last_name, position_id, manager_id)
+insert into employee (first_name, last_name, role_id, manager_id)
 VALUES
 ('Ricky ', 'Bobby', 3, null),
 ('Dale', 'Doback', 1, 2),
