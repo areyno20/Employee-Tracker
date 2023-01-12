@@ -5,7 +5,7 @@
 This week twelve challenge is used to demonstrate how to use the skills we have learned from the past week. It demonstrates how to use SQL and Node.js to create an employee tracker that can be viewed and edited.
 
 ## Screenshots
-(./assets/images/employeetracker.png)
+![image](./assets/images/employeetracker.png)
 
 ## Installation
 
