@@ -7,7 +7,6 @@ This week twelve challenge is used to demonstrate how to use the skills we have 
 ## Screenshots
 (./assets/images/employeetracker.png)
 
-
 ## Installation
 
 N/A
