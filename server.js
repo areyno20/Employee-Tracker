@@ -2,7 +2,6 @@
 const inquirer = require('inquirer'); 
 const mysql = require("mysql2");
 
-
 // Connect to database
 const connection = mysql.createConnection(
   {
@@ -13,7 +12,7 @@ const connection = mysql.createConnection(
     password: "mysqlpass20",
     database: 'employeetracker_db'
   },
-  console.log(`Connected to the employeetracker_db database.`)
+  console.log(`Connecting to the employeetracker_db database.`)
 );
 
 connection.connect(function(err) {
@@ -25,55 +24,57 @@ connection.connect(function(err) {
 });
 
 postConnection = () => {
-  console.log("***********************************")
-  console.log("*        EMPLOYEE MANAGER         *")
-  console.log("***********************************")
-  employeetracker()
+  console.log("-----------------------------------")
+  console.log("|        EMPLOYEE MANAGER         |")
+  console.log("-----------------------------------")
+  employeeTracker()
 };
 
-
-const employeetracker=() => {
-  inquirer.prompt([{
+const employeeTracker = () => {
+  inquirer.prompt ([
+    {
       type: 'list',
-      name: 'employeetracker',
+      name: 'choices', 
       message: 'What would you like to do?',
       choices: [
-      'View all employees', 
-      'View all departments', 
-      'View all positions', 
-      'Add employee', 
-      'Add department', 
-      'Add position', 
-      'Update employee position',
-      'Quit'
-      ]
-  }])
-  .then((answers) => {
-    if(answers === 'View all employees') {
-      showEmployees();
+                'View all employees', 
+                'View all departments', 
+                'View all roles', 
+                'Add an employee', 
+                'Add a department', 
+                'Add a role', 
+                'Update an employee role',
+                'Quit'
+              ]
     }
-    if(answers === 'View all departments') {
-      showDepartments();
-    }
-    if(answers === 'View all positions') {
-      showPositions();
-    }
-    if(answers === 'Add employee') {
-      addEmployee();
-    }
-    if(answers === 'Add department') {
-      addDepartment();
-    }
-    if(answers === 'Add position') {
-      addPosition();
-    }
-    if(answers === 'Update employee position') {
-      updateEmployeePosition();
-    }
-    if(answers === 'Quit') {
-      quit();
-    }
-  })
+  ])
+    .then((answers) => {
+      const { choices } = answers; 
+      if (choices === "View all employees") {
+        showEmployees();
+      }
+      if (choices === "View all departments") {
+        showDepartments();
+      }
+      if (choices === "View all roles") {
+        showRoles();
+      }
+      if (choices === "Add an employee") {
+        addEmployee();
+      }
+      if (choices === "Add a department") {
+        addDepartment();
+      }
+      if (choices === "Add a role") {
+        addRole();
+      }
+      if (choices === "Update an employee role") {
+        updateEmployee();
+      }
+      if (choices === "Quit") {
+        connection.end()
+    };
+  });
 };
   
 showEmployees=() => {
@@ -81,7 +82,7 @@ showEmployees=() => {
     if (err) throw err;
     console.log("Viewing all employees: ");
     console.table(result);
-    employeetracker();
+    employeeTracker();
   });
 }
 
@@ -89,26 +90,28 @@ showDepartments=() => {
   connection.query(`SELECT * FROM department`, (err, result) => {
     if (err) throw err; 
     console.table(result);
-    employeetracker();
+    employeeTracker();
   });
 }
 
-showPositions=() => {
-  connection.query('SELECT * FROM position', (err, result) => {
+showRoles=() => {
+  connection.query('SELECT * FROM role', (err, result) => {
     if (err) throw err; 
     console.table(result);
-    employeetracker();
+    employeeTracker();
   });
 }
 
 addEmployee=() => {
+  connection.query(`SELECT * FROM employee, role`, (err, result) => {
+    if (err) throw err;
   inquirer.prompt([
     {
       type: 'input',
-      name: 'first_name',
+      name: 'firstName',
       message: 'What is the employees first name that you want to add?',
-      validate: employeeadd => {
-        if (employeeadd) {
+      validate: firstNameInput => {
+        if (firstNameInput) {
           return true;
         } else {
           console.log('Please enter the employees first name correctly');
@@ -118,10 +121,10 @@ addEmployee=() => {
     },
     {
       type: 'input',
-      name: 'last_name',
+      name: 'lastName',
       message: 'What is the employees last name that you want to add?',
-      validate: employeeadd => {
-        if (employeeadd) {
+      validate: lastNameInput => {
+        if (lastNameInput) {
           return true;
         } else {
           console.log('Please enter the employees last name correctly');
@@ -131,20 +134,20 @@ addEmployee=() => {
     },
     {
       type: 'input',
-      name: 'position_id',
-      message: 'What is the employees position in the company?',
+      name: 'role',
+      message: 'What is the employees role in the company?',
       choices: () => {
-        const position = [];
-          for (var i = 0; i < result.length; i++) {
-          position.push(result[i].title);
+        var array = [];
+        for (var i = 0; i < result.length; i++) {
+            array.push(result[i].title);
         }
-        var newPosition = [...new Set(array)];
-          return newPosition;
+        var newArray = [...new Set(array)];
+        return newArray;
       }
     },
     {
       type: 'input',
-      name: 'manager_id',
+      name: 'manager',
       message: 'Who is the employees manager?',
       validate: managerInput => {
           if (managerInput) {
@@ -157,17 +160,18 @@ addEmployee=() => {
     }                
     ]).then((answers) => {
       for (var i = 0; i < result.length; i++) {
-          if (result[i].title === answers.position) {
-              var position = result[i];
+          if (result[i].title === answers.role) {
+              var role = result[i];
           }
       }
-      connection.query(`INSERT INTO employee (first_name, last_name, position_id, manager_id) VALUES (?, ?, ?, ?)`, [answers.firstName, answers.lastName, position.id, answers.manager.id], (err, result) => {
-          if (err) throw err;
-          console.log(`Added ${answers.firstName} ${answers.lastName} to the database.`)
-          employeetracker();
+      connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`, [answers.firstName, answers.lastName, role.id, answers.manager.id], (err, result) => {
+        if (err) throw err;
+        console.log(`Added employee to the database.`)
+        employeeTracker();
       });
+    })
   })
-}
+};
   
 addDepartment=() =>{
   inquirer.prompt([
@@ -188,24 +192,24 @@ addDepartment=() =>{
     connection.query(`INSERT INTO department (name) VALUES (?)`, [answers.department], (err) => {
       if (err) throw err;
       console.log(`Added ${answers.department} to the database.`)
-      employeetracker();
+      employeeTracker();
     });
   })
 }
 
-addPosition=() => {
+addRole=() => {
   connection.query('SELECT * FROM department', (err, result) => {
     if (err) throw err;
         inquirer.prompt ([
           {
             type: 'input',
-            name: 'position_id',
-            message: 'What position would you like to add?',
-            validate: positionadd => {
-              if (positionadd) {
+            name: 'role_id',
+            message: 'What role would you like to add?',
+            validate: roleAdd => {
+              if (roleAdd) {
                 return true; 
               } else {
-                console.log('Please enter the position correctly');
+                console.log('Please enter the role correctly');
                 return false;
               }
             }
@@ -213,7 +217,7 @@ addPosition=() => {
           {
             type: 'input',
             name: 'salary',
-            message: 'What is the salary for this position?',
+            message: 'What is the salary for this role?',
             validate: salaryadd => {
               if (salaryadd) {
                 return true;
@@ -226,7 +230,7 @@ addPosition=() => {
           {
             type: 'input',
             name: 'department_id',
-            message: 'Department for this position?',
+            message: 'Department for this role?',
             choices: () => {
               const department = [];
               for (var i = 0; i < result.length; i++) {
@@ -240,10 +244,10 @@ addPosition=() => {
                   var department = result[i];
               }
           }
-          connection.query(`INSERT INTO position (title, salary, department_id) VALUES (?, ?, ?)`, [answers.position, answers.salary, department.id], (err) => {
+          connection.query(`INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`, [answers.role, answers.salary, department.id], (err) => {
               if (err) throw err;
-              console.log(`Added ${answers.position} to the database.`)
-              employeetracker();
+              console.log(`Added ${answers.role} to the database.`)
+              employeeTracker();
           });
       })
     })
@@ -266,26 +270,26 @@ updateEmployee=() => {
       },
       {
         type: 'input',
-        name: 'position_id',
-        message: 'What is the employees new position?',
+        name: 'role_id',
+        message: 'What is the employees new role?',
         choices: () => {
-          const position = [];
+          const role = [];
           for (var i = 0; i < result.length; i++) {
-            position.push(result[i].title);
+            role.push(result[i].title);
           }
-          return position;
+          return role;
         }
       }
       ]).then(() => {
         for (var i = 0; i < result.length; i++) {
-          if (result[i].title === answers.position) {
-              var position = result[i];
+          if (result[i].title === answers.role) {
+              var role = result[i];
           }
       }
-      connection.query(`UPDATE employee SET position_id = ? WHERE first_name = ?`, [position.id, answers.employee], (err) => {
+      connection.query(`UPDATE employee SET role_id = ? WHERE first_name = ?`, [role.id, answers.employee], (err) => {
           if (err) throw err;
-          console.log(`Updated ${answers.employee}'s position to ${answers.position}.`)
-          employeetracker();
+          console.log(`Updated ${answers.employee}'s role to ${answers.role}.`)
+          employeeTracker();
         });
       })
     })
