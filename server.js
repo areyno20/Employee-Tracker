@@ -1,6 +1,7 @@
 //dependencies
 const inquirer = require('inquirer'); 
 const mysql = require("mysql2");
+const cTable = require('console.table'); 
 
 // Connect to database
 const connection = mysql.createConnection(
@@ -133,7 +134,7 @@ addEmployee=() => {
       }
     },
     {
-      type: 'input',
+      type: 'list',
       name: 'role',
       message: 'What is the employees role in the company?',
       choices: () => {
